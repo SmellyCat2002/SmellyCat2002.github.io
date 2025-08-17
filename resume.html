@@ -8,7 +8,15 @@ multilingual: false
 hide-in-nav: true
 ---
 
-<div class="resume-container">
+<div class="password-protection">
+  <h2>简历访问需要密码</h2>
+  <p>请输入密码以查看和下载简历</p>
+  <input type="password" id="resume-password" placeholder="输入密码">
+  <button id="submit-password" class="btn btn-primary">提交</button>
+  <p id="password-error" style="color: red; display: none;">密码错误，请重试</p>
+</div>
+
+<div class="resume-container" style="display: none;">
   <h1>个人简历</h1>
   
   <div class="resume-intro">
@@ -21,6 +29,18 @@ hide-in-nav: true
     </a>
   </div>
   
+  <div class="resume-upload">
+    <h2>上传简历</h2>
+    <p>上传您的最新简历（仅本地预览，不会保存到服务器）</p>
+    <input type="file" id="resume-upload" accept=".pdf,.doc,.docx" style="display: none;">
+    <button id="upload-btn" class="btn btn-secondary">
+      <i class="fa fa-upload"></i> 选择文件
+    </button>
+    <p id="file-name" style="margin-top: 10px; display: none;"></p>
+    <div id="file-preview" style="margin-top: 20px; display: none;"></div>
+    <p class="text-muted" style="margin-top: 15px; font-size: 12px;">注：由于GitHub Pages是静态网站，上传的文件仅在您的浏览器中临时预览，不会保存到服务器。</p>
+  </div>
+  
   <div class="resume-preview">
     <h2>简历预览</h2>
     <div class="resume-placeholder">
@@ -29,6 +49,70 @@ hide-in-nav: true
     </div>
   </div>
 </div>
+
+<script>
+  document.getElementById('submit-password').addEventListener('click', function() {
+    const password = document.getElementById('resume-password').value;
+    if (password === '4399') {
+      document.querySelector('.password-protection').style.display = 'none';
+      document.querySelector('.resume-container').style.display = 'block';
+    } else {
+      document.getElementById('password-error').style.display = 'block';
+    }
+  });
+
+  // 支持按Enter键提交密码
+  document.getElementById('resume-password').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      document.getElementById('submit-password').click();
+    }
+  });
+
+  // 上传简历功能
+  document.getElementById('upload-btn').addEventListener('click', function() {
+    document.getElementById('resume-upload').click();
+  });
+
+  document.getElementById('resume-upload').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+      // 显示文件名
+      document.getElementById('file-name').textContent = '已选择: ' + file.name;
+      document.getElementById('file-name').style.display = 'block';
+
+      // 清空之前的预览
+      const previewContainer = document.getElementById('file-preview');
+      previewContainer.innerHTML = '';
+
+      // 检查文件类型并预览
+      if (file.type === 'application/pdf') {
+        // 预览PDF
+        previewContainer.style.display = 'block';
+        const objectUrl = URL.createObjectURL(file);
+        const pdfViewer = document.createElement('embed');
+        pdfViewer.src = objectUrl;
+        pdfViewer.type = 'application/pdf';
+        pdfViewer.width = '100%';
+        pdfViewer.height = '500px';
+        previewContainer.appendChild(pdfViewer);
+      } else if (file.name.endsWith('.doc') || file.name.endsWith('.docx')) {
+        // 对于Word文档，提供下载链接
+        previewContainer.style.display = 'block';
+        const objectUrl = URL.createObjectURL(file);
+        const downloadLink = document.createElement('a');
+        downloadLink.href = objectUrl;
+        downloadLink.download = file.name;
+        downloadLink.className = 'btn btn-info';
+        downloadLink.innerHTML = '<i class="fa fa-download"></i> 下载文档查看';
+        previewContainer.appendChild(downloadLink);
+      } else {
+        // 不支持的文件类型
+        previewContainer.style.display = 'block';
+        previewContainer.innerHTML = '<p style="color: #777;">不支持的文件类型。请上传PDF或Word文档。</p>';
+      }
+    }
+  });
+</script>
 
 <style>
 .resume-container {
@@ -61,6 +145,58 @@ hide-in-nav: true
   justify-content: center;
   align-items: center;
   text-align: center;
+  color: #666;
+}
+
+.password-protection {
+  max-width: 500px;
+  margin: 50px auto;
+  padding: 30px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  text-align: center;
+}
+
+.password-protection h2 {
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.password-protection p {
+  margin-bottom: 20px;
+  color: #666;
+}
+
+#resume-password {
+  padding: 10px 15px;
+  width: 70%;
+  margin-bottom: 20px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+#submit-password {
+  padding: 10px 25px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+#password-error {
+  margin-top: 15px;
+}
+
+/* 上传简历区域样式 */
+.resume-upload {
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px dashed #e0e0e0;
+  text-align: center;
+}
+
+.resume-upload p {
+  margin-bottom: 15px;
   color: #666;
 }
 </style>
