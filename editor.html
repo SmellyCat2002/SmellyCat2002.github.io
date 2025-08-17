@@ -62,6 +62,8 @@ description: "在线编辑并发布新文章"
 
 <!-- 引入TinyMCE编辑器 -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.7.0/tinymce.min.js"></script>
+  <!-- 引入snackbar.js -->
+  <script src="js/snackbar.js"></script>
 <script>
     // 确保文档加载完成后初始化编辑器
     document.addEventListener('DOMContentLoaded', function() {
@@ -218,7 +220,12 @@ description: "在线编辑并发布新文章"
                 return response.json();
             })
             .then(data => {
-                alert('文章发布成功!\n文件URL: ' + data.content.html_url);
+                // 使用snackbar显示成功消息
+                createSnackbar({
+                    message: '文章发布成功! 文件URL: ' + data.content.html_url,
+                    actionText: '关闭',
+                    duration: 8000
+                });
                 // 重置表单
                 document.getElementById('post-title').value = '';
                 document.getElementById('post-subtitle').value = '';
@@ -230,7 +237,12 @@ description: "在线编辑并发布新文章"
             })
             .catch(error => {
                 console.error('发布文章时出错:', error);
-                alert('发布文章失败: ' + error.message);
+                // 使用snackbar显示错误消息
+                createSnackbar({
+                    message: '发布文章失败: ' + error.message,
+                    actionText: '关闭',
+                    duration: 8000
+                });
             });
         }
     });
