@@ -75,7 +75,7 @@ netease_comment: false
 # Sidebar settings
 sidebar: true # whether or not using Sidebar.
 sidebar-about-description: "热爱创作与思考的博主"
-sidebar-avatar: /img/藤本树《蓦然回首》头像集_1_镜砚徽_来自小红书网页版.jpg # 使用本地藤本树图片
+sidebar-avatar: "/img/藤本树《蓦然回首》头像集_1_镜砚徽_来自小红书网页版.jpg" # 使用本地藤本树图片
 
 # Featured Tags
 featured-tags: true # whether or not using Feature-Tags
