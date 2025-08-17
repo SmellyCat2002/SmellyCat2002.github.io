@@ -141,10 +141,16 @@ hide-in-nav: true
       n = s(n, o, l, m, q[i + 15], 16, 530742520);
       m = s(m, n, o, l, q[i + 2], 23, -995338651);
 
-      l = (l + p) >>> 0;
-      m = (m + m) >>> 0;
-      n = (n + n) >>> 0;
-      o = (o + o) >>> 0;
+      // 保存原始值
+    let originalL = l;
+    let originalM = m;
+    let originalN = n;
+    let originalO = o;
+
+    l = (l + p) >>> 0;
+    m = (m + originalM) >>> 0;
+    n = (n + originalN) >>> 0;
+    o = (o + originalO) >>> 0;
     }
 
     md5Hash = ((l >>> 24) & 0xFF).toString(16).padStart(2, '0') +
