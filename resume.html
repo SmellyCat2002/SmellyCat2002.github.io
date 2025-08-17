@@ -39,13 +39,81 @@ hide-in-nav: true
 </div>
 
 <script>
-  document.getElementById('submit-password').addEventListener('click', function() {
+// 密码信息记录 - 原始密码: 4399, MD5哈希值: 154279d8c3e9d1a5240940c62c05366a
+// 如果忘记密码，可以通过此注释找回相关信息
+
+  // 存储密码的MD5哈希值（原始密码: 4399）
+  const PASSWORD_HASH = '154279d8c3e9d1a5240940c62c05366a';
+  let attemptCount = 0;
+  const MAX_ATTEMPTS = 5;
+  const LOCK_TIME = 30; // 锁定时间（秒）
+  let isLocked = false;
+
+  // MD5哈希函数（简化版）
+  function md5(str) {
+    // 实际项目中应使用标准的MD5库
+    // 这里为了演示，使用一个简化的实现
+    const crypto = window.crypto || window.msCrypto;
+    if (crypto && crypto.subtle) {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(str);
+      return crypto.subtle.digest('MD5', data)
+        .then(hash => {
+          return Array.from(new Uint8Array(hash))
+            .map(b => b.toString(16).padStart(2, '0'))
+            .join('');
+        });
+    } else {
+      // 回退方案，使用简单的哈希实现
+      let hash = 0;
+      if (str.length === 0) return hash;
+      for (let i = 0; i < str.length; i++) {
+        const char = str.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash; // 转换为32位整数
+      }
+      return Math.abs(hash).toString(16);
+    }
+  }
+
+  document.getElementById('submit-password').addEventListener('click', async function() {
+    if (isLocked) {
+      document.getElementById('password-error').textContent = '尝试次数过多，请稍后再试';
+      document.getElementById('password-error').style.display = 'block';
+      return;
+    }
+
     const password = document.getElementById('resume-password').value;
-    if (password === '4399') {
+    const hash = await md5(password);
+
+    if (hash === PASSWORD_HASH) {
       document.querySelector('.password-protection').style.display = 'none';
       document.querySelector('.resume-container').style.display = 'block';
+      attemptCount = 0; // 重置尝试次数
     } else {
+      attemptCount++;
+      document.getElementById('password-error').textContent = '密码错误，请重试（剩余尝试次数：' + (MAX_ATTEMPTS - attemptCount) + '）';
       document.getElementById('password-error').style.display = 'block';
+
+      if (attemptCount >= MAX_ATTEMPTS) {
+        isLocked = true;
+        document.getElementById('password-error').textContent = '尝试次数过多，' + LOCK_TIME + '秒后可重试';
+        document.getElementById('submit-password').disabled = true;
+
+        // 倒计时解锁
+        let countdown = LOCK_TIME;
+        const timer = setInterval(() => {
+          countdown--;
+          document.getElementById('password-error').textContent = '尝试次数过多，' + countdown + '秒后可重试';
+          if (countdown <= 0) {
+            clearInterval(timer);
+            isLocked = false;
+            attemptCount = 0;
+            document.getElementById('password-error').style.display = 'none';
+            document.getElementById('submit-password').disabled = false;
+          }
+        }, 1000);
+      }
     }
   });
 
@@ -55,7 +123,6 @@ hide-in-nav: true
       document.getElementById('submit-password').click();
     }
   });
-
 </script>
 
 <style>

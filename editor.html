@@ -1,0 +1,138 @@
+---
+layout: page
+title: 写文章
+description: "在线编辑并发布新文章"
+---
+
+<div class="container">
+    <div class="row">
+        <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+            <div class="form-group">
+                <label for="post-title">文章标题</label>
+                <input type="text" id="post-title" class="form-control" placeholder="输入文章标题">
+            </div>
+            
+            <div class="form-group">
+                <label for="post-subtitle">副标题 (可选)</label>
+                <input type="text" id="post-subtitle" class="form-control" placeholder="输入文章副标题">
+            </div>
+            
+            <div class="form-group">
+                <label for="post-content">文章内容</label>
+                <textarea id="post-content" rows="20"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="post-tags">标签 (用逗号分隔)</label>
+                <input type="text" id="post-tags" class="form-control" placeholder="输入文章标签，用逗号分隔">
+            </div>
+            
+            <button id="publish-btn" class="btn btn-primary btn-lg pull-right">发布文章</button>
+        </div>
+    </div>
+</div>
+
+<!-- 引入TinyMCE编辑器 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.7.0/tinymce.min.js"></script>
+<script>
+    // 初始化TinyMCE编辑器
+    tinymce.init({
+        selector: '#post-content',
+        plugins: 'advlist autolink lists link image charmap print preview anchor',
+        toolbar: 'undo redo | formatselect | bold italic backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | help',
+        height: 500,
+        setup: function(editor) {
+            editor.on('init', function() {
+                this.getDoc().body.style.fontSize = '16px';
+            });
+        }
+    });
+
+    // 发布文章功能
+    document.getElementById('publish-btn').addEventListener('click', function() {
+        // 获取文章信息
+        const title = document.getElementById('post-title').value;
+        const subtitle = document.getElementById('post-subtitle').value;
+        const content = tinymce.get('post-content').getContent();
+        const tags = document.getElementById('post-tags').value;
+
+        // 简单验证
+        if (!title || !content) {
+            alert('请填写文章标题和内容');
+            return;
+        }
+
+        // 生成日期
+        const today = new Date();
+        const dateStr = today.getFullYear() + '-' +
+                        String(today.getMonth() + 1).padStart(2, '0') + '-' +
+                        String(today.getDate()).padStart(2, '0');
+
+        // 构建文章文件名
+        const fileName = dateStr + '-' + title.toLowerCase().replace(/[^a-z0-9]/g, '-') + '.md';
+
+        // 构建文章内容
+        let postContent = '---\n';
+        postContent += 'layout: post\n';
+        postContent += 'title: "' + title + '"\n';
+        if (subtitle) {
+            postContent += 'subtitle: "' + subtitle + '"\n';
+        }
+        postContent += 'date: ' + today.toISOString() + '\n';
+        postContent += 'author: "' + '{{ site.title }}' + '"\n';
+        if (tags) {
+            postContent += 'tags: [' + tags.split(',').map(tag => '"' + tag.trim() + '"').join(', ') + ']\n';
+        }
+        postContent += 'categories: []\n';
+        postContent += '---\n\n';
+        postContent += content;
+
+        // 配置GitHub仓库信息
+        const githubUsername = 'SmellyCat2002';
+        const githubRepo = 'SmellyCat2002.github.io';
+        const branch = 'main'; // 或 'master'
+        const apiUrl = `https://api.github.com/repos/${githubUsername}/${githubRepo}/contents/_posts/${fileName}`;
+
+        // 获取用户输入的GitHub令牌
+        const githubToken = prompt('请输入您的GitHub个人访问令牌:');
+        if (!githubToken) {
+            alert('需要GitHub令牌才能发布文章');
+            return;
+        }
+
+        // 构建请求体
+        const requestBody = {
+            message: `Add new post: ${title}`,
+            content: btoa(unescape(encodeURIComponent(postContent))), // 编码为Base64
+            branch: branch
+        };
+
+        // 发送请求到GitHub API
+        fetch(apiUrl, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `token ${githubToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestBody)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`GitHub API请求失败: ${response.status} ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            alert('文章发布成功!\n文件URL: ' + data.content.html_url);
+            // 重置表单
+            document.getElementById('post-title').value = '';
+            document.getElementById('post-subtitle').value = '';
+            tinymce.get('post-content').setContent('');
+            document.getElementById('post-tags').value = '';
+        })
+        .catch(error => {
+            console.error('发布文章时出错:', error);
+            alert('发布文章失败: ' + error.message);
+        });
+    });
+</script>
