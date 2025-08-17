@@ -1,0 +1,65 @@
+---
+layout: page
+title: "Resume"
+description: "个人简历"
+header-mask: 0.3
+multilingual: false
+hide-in-nav: false
+---
+
+<div class="resume-container">
+  <h1>个人简历</h1>
+  
+  <div class="resume-intro">
+    <p>这里展示我的个人简历。点击下方按钮查看完整PDF版本。</p>
+  </div>
+  
+  <div class="resume-download">
+    <a href="{{ site.baseurl }}/resume.pdf" class="btn btn-primary" target="_blank">
+      <i class="fa fa-download"></i> 下载PDF简历
+    </a>
+  </div>
+  
+  <div class="resume-preview">
+    <h2>简历预览</h2>
+    <div class="resume-placeholder">
+      <p>PDF简历将在此处预览</p>
+      <p>由于目前没有提供实际PDF文件，此为占位区域</p>
+    </div>
+  </div>
+</div>
+
+<style>
+.resume-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.resume-intro {
+  margin-bottom: 30px;
+  font-size: 16px;
+}
+
+.resume-download {
+  margin-bottom: 40px;
+  text-align: center;
+}
+
+.resume-preview {
+  background-color: #f9f9f9;
+  padding: 20px;
+  border-radius: 5px;
+  border: 1px solid #e0e0e0;
+}
+
+.resume-placeholder {
+  height: 400px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  color: #666;
+}
+</style>
