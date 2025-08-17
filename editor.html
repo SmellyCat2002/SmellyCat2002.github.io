@@ -36,20 +36,9 @@ description: "在线编辑并发布新文章"
             </div>
             
             <div class="form-group">
-                <label for="post-category">分类</label>
-                <select id="post-category" class="form-control">
-                    <option value="">选择分类</option>
-                    <option value="技术">技术</option>
-                    <option value="生活">生活</option>
-                    <option value="思考">思考</option>
-                    <option value="读书笔记">读书笔记</option>
-                    <option value="其他">其他</option>
-                </select>
-            </div>
-
-            <div class="form-group">
                 <label for="post-tags">标签 (用逗号分隔)</label>
                 <input type="text" id="post-tags" class="form-control" placeholder="输入文章标签，用逗号分隔">
+                <small class="text-muted">标签会显示在文章下方和首页的特色标签区域</small>
             </div>
 
             <div class="form-group">
@@ -74,35 +63,38 @@ description: "在线编辑并发布新文章"
 <!-- 引入TinyMCE编辑器 -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.7.0/tinymce.min.js"></script>
 <script>
-    // 初始化TinyMCE编辑器
-    tinymce.init({
-        selector: '#post-content',
-        plugins: 'advlist autolink lists link image charmap print preview anchor searchreplace visualblocks code fullscreen insertdatetime media table paste code help wordcount',
-        toolbar: 'undo redo | formatselect | bold italic backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | help | link image media | table | code | fullscreen',
-        height: 600,
-        menubar: true,
-        language: 'zh_CN',
-        file_picker_callback: function(callback, value, meta) {
-            // 文件上传回调函数
-            if (meta.filetype === 'image') {
-                // 创建一个隐藏的文件输入
-                const input = document.createElement('input');
-                input.setAttribute('type', 'file');
-                input.setAttribute('accept', 'image/*');
-                input.onchange = function() {
-                    const file = this.files[0];
-                    // 这里只是模拟上传，实际项目中需要替换为真实的上传逻辑
-                    // 使用URL.createObjectURL临时展示图片
-                    callback(URL.createObjectURL(file), {alt: file.name});
-                };
-                input.click();
+    // 确保文档加载完成后初始化编辑器
+    document.addEventListener('DOMContentLoaded', function() {
+        // 初始化TinyMCE编辑器
+        tinymce.init({
+            selector: '#post-content',
+            plugins: 'advlist autolink lists link image charmap print preview anchor searchreplace visualblocks code fullscreen insertdatetime media table paste code help wordcount',
+            toolbar: 'undo redo | formatselect | bold italic backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | help | link image media | table | code | fullscreen',
+            height: 600,
+            menubar: true,
+            language: 'zh_CN',
+            file_picker_callback: function(callback, value, meta) {
+                // 文件上传回调函数
+                if (meta.filetype === 'image') {
+                    // 创建一个隐藏的文件输入
+                    const input = document.createElement('input');
+                    input.setAttribute('type', 'file');
+                    input.setAttribute('accept', 'image/*');
+                    input.onchange = function() {
+                        const file = this.files[0];
+                        // 这里只是模拟上传，实际项目中需要替换为真实的上传逻辑
+                        // 使用URL.createObjectURL临时展示图片
+                        callback(URL.createObjectURL(file), {alt: file.name});
+                    };
+                    input.click();
+                }
+            },
+            setup: function(editor) {
+                editor.on('init', function() {
+                    this.getDoc().body.style.fontSize = '16px';
+                });
             }
-        },
-        setup: function(editor) {
-            editor.on('init', function() {
-                this.getDoc().body.style.fontSize = '16px';
-            });
-        }
+        });
     });
 
     // 图片预览功能
@@ -188,7 +180,7 @@ description: "在线编辑并发布新文章"
             // 配置GitHub仓库信息
             const githubUsername = 'SmellyCat2002';
             const githubRepo = 'SmellyCat2002.github.io';
-            const branch = 'main'; // 或 'master'
+            const branch = 'master'; // 使用master分支，与之前的提交保持一致
             const apiUrl = `https://api.github.com/repos/${githubUsername}/${githubRepo}/contents/_posts/${fileName}`;
 
             // 获取表单中的GitHub令牌
@@ -236,67 +228,8 @@ description: "在线编辑并发布新文章"
                 alert('发布文章失败: ' + error.message);
             });
         }
-
-        // 简单验证
-        if (!title || !content) {
-            alert('请填写文章标题和内容');
-            return;
-        }
-
-        // 生成日期
-        const today = new Date();
-        const dateStr = today.getFullYear() + '-' +
-                        String(today.getMonth() + 1).padStart(2, '0') + '-' +
-                        String(today.getDate()).padStart(2, '0');
-
-        // 构建文章文件名
-        const fileName = dateStr + '-' + title.toLowerCase().replace(/[^a-z0-9]/g, '-') + '.md';
-
-        // 构建文章内容
-        let postContent = '---\n';
-        postContent += 'layout: post\n';
-        postContent += 'title: "' + title + '"\n';
-        if (subtitle) {
-            postContent += 'subtitle: "' + subtitle + '"\n';
-        }
-        postContent += 'date: ' + today.toISOString() + '\n';
-        postContent += 'author: "' + '{{ site.title }}' + '"\n';
-        if (tags) {
-            postContent += 'tags: [' + tags.split(',').map(tag => '"' + tag.trim() + '"').join(', ') + ']\n';
-        }
-        postContent += 'categories: []\n';
-        postContent += '---\n\n';
-        postContent += content;
-
-        // 配置GitHub仓库信息
-        const githubUsername = 'SmellyCat2002';
-        const githubRepo = 'SmellyCat2002.github.io';
-        const branch = 'main'; // 或 'master'
-        const apiUrl = `https://api.github.com/repos/${githubUsername}/${githubRepo}/contents/_posts/${fileName}`;
-
-        // 获取用户输入的GitHub令牌
-        const githubToken = prompt('请输入您的GitHub个人访问令牌:');
-        if (!githubToken) {
-            alert('需要GitHub令牌才能发布文章');
-            return;
-        }
-
-        // 构建请求体
-        const requestBody = {
-            message: `Add new post: ${title}`,
-            content: btoa(unescape(encodeURIComponent(postContent))), // 编码为Base64
-            branch: branch
-        };
-
-        // 发送请求到GitHub API
-        fetch(apiUrl, {
-            method: 'PUT',
-            headers: {
-                'Authorization': `token ${githubToken}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(requestBody)
-        })
+    });
+</script>
         .then(response => {
             if (!response.ok) {
                 throw new Error(`GitHub API请求失败: ${response.status} ${response.statusText}`);
