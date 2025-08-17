@@ -23,8 +23,28 @@ description: "在线编辑并发布新文章"
             </div>
             
             <div class="form-group">
+                <label for="post-category">分类</label>
+                <select id="post-category" class="form-control">
+                    <option value="">选择分类</option>
+                    <option value="技术">技术</option>
+                    <option value="生活">生活</option>
+                    <option value="思考">思考</option>
+                    <option value="读书笔记">读书笔记</option>
+                    <option value="其他">其他</option>
+                </select>
+            </div>
+
+            <div class="form-group">
                 <label for="post-tags">标签 (用逗号分隔)</label>
                 <input type="text" id="post-tags" class="form-control" placeholder="输入文章标签，用逗号分隔">
+            </div>
+
+            <div class="form-group">
+                <label for="post-featured-image">特色图片</label>
+                <input type="file" id="post-featured-image" accept="image/*">
+                <div id="image-preview" style="margin-top: 10px; display: none;">
+                    <img id="preview-img" src="" alt="预览图" style="max-width: 100%; max-height: 200px;">
+                </div>
             </div>
             
             <button id="publish-btn" class="btn btn-primary btn-lg pull-right">发布文章</button>
@@ -38,13 +58,44 @@ description: "在线编辑并发布新文章"
     // 初始化TinyMCE编辑器
     tinymce.init({
         selector: '#post-content',
-        plugins: 'advlist autolink lists link image charmap print preview anchor',
-        toolbar: 'undo redo | formatselect | bold italic backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | help',
-        height: 500,
+        plugins: 'advlist autolink lists link image charmap print preview anchor searchreplace visualblocks code fullscreen insertdatetime media table paste code help wordcount',
+        toolbar: 'undo redo | formatselect | bold italic backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | help | link image media | table | code | fullscreen',
+        height: 600,
+        menubar: true,
+        language: 'zh_CN',
+        file_picker_callback: function(callback, value, meta) {
+            // 文件上传回调函数
+            if (meta.filetype === 'image') {
+                // 创建一个隐藏的文件输入
+                const input = document.createElement('input');
+                input.setAttribute('type', 'file');
+                input.setAttribute('accept', 'image/*');
+                input.onchange = function() {
+                    const file = this.files[0];
+                    // 这里只是模拟上传，实际项目中需要替换为真实的上传逻辑
+                    // 使用URL.createObjectURL临时展示图片
+                    callback(URL.createObjectURL(file), {alt: file.name});
+                };
+                input.click();
+            }
+        },
         setup: function(editor) {
             editor.on('init', function() {
                 this.getDoc().body.style.fontSize = '16px';
             });
+        }
+    });
+
+    // 图片预览功能
+    document.getElementById('post-featured-image').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                document.getElementById('preview-img').src = event.target.result;
+                document.getElementById('image-preview').style.display = 'block';
+            };
+            reader.readAsDataURL(file);
         }
     });
 
@@ -54,7 +105,118 @@ description: "在线编辑并发布新文章"
         const title = document.getElementById('post-title').value;
         const subtitle = document.getElementById('post-subtitle').value;
         const content = tinymce.get('post-content').getContent();
+        const category = document.getElementById('post-category').value;
         const tags = document.getElementById('post-tags').value;
+        const featuredImageInput = document.getElementById('post-featured-image');
+        let featuredImageBase64 = '';
+
+        // 检查是否有特色图片
+        if (featuredImageInput.files && featuredImageInput.files[0]) {
+            // 这里只是简单演示，实际项目中应该上传图片到服务器
+            // 为了简化，我们将图片转换为Base64编码嵌入到文章中
+            const reader = new FileReader();
+            reader.onloadend = function() {
+                featuredImageBase64 = reader.result;
+                publishArticle();
+            };
+            reader.readAsDataURL(featuredImageInput.files[0]);
+        } else {
+            publishArticle();
+        }
+
+        function publishArticle() {
+            // 简单验证
+            if (!title || !content) {
+                alert('请填写文章标题和内容');
+                return;
+            }
+
+            // 生成日期
+            const today = new Date();
+            const dateStr = today.getFullYear() + '-' +
+                            String(today.getMonth() + 1).padStart(2, '0') + '-' +
+                            String(today.getDate()).padStart(2, '0');
+
+            // 构建文章文件名
+            const fileName = dateStr + '-' + title.toLowerCase().replace(/[^a-z0-9]/g, '-') + '.md';
+
+            // 构建文章内容
+            let postContent = '---\n';
+            postContent += 'layout: post\n';
+            postContent += 'title: "' + title + '"\n';
+            if (subtitle) {
+                postContent += 'subtitle: "' + subtitle + '"\n';
+            }
+            postContent += 'date: ' + today.toISOString() + '\n';
+            postContent += 'author: "' + '{{ site.title }}' + '"\n';
+            if (category) {
+                postContent += 'categories: [' + category + ']\n';
+            }
+            if (tags) {
+                postContent += 'tags: [' + tags.split(',').map(tag => '"' + tag.trim() + '"').join(', ') + ']\n';
+            }
+            if (featuredImageBase64) {
+                // 提取Base64中的图片格式和数据
+                const base64Parts = featuredImageBase64.split(',');
+                const mimeType = base64Parts[0].split(':')[1].split(';')[0];
+                const imageData = base64Parts[1];
+                // 这里仅作为演示，实际项目中应该上传图片到服务器
+                postContent += 'image: data:' + mimeType + ';base64,' + imageData + '\n';
+            }
+            postContent += '---\n\n';
+            postContent += content;
+
+            // 配置GitHub仓库信息
+            const githubUsername = 'SmellyCat2002';
+            const githubRepo = 'SmellyCat2002.github.io';
+            const branch = 'main'; // 或 'master'
+            const apiUrl = `https://api.github.com/repos/${githubUsername}/${githubRepo}/contents/_posts/${fileName}`;
+
+            // 获取用户输入的GitHub令牌
+            const githubToken = prompt('请输入您的GitHub个人访问令牌:');
+            if (!githubToken) {
+                alert('需要GitHub令牌才能发布文章');
+                return;
+            }
+
+            // 构建请求体
+            const requestBody = {
+                message: `Add new post: ${title}`,
+                content: btoa(unescape(encodeURIComponent(postContent))), // 编码为Base64
+                branch: branch
+            };
+
+            // 发送请求到GitHub API
+            fetch(apiUrl, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `token ${githubToken}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestBody)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`GitHub API请求失败: ${response.status} ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                alert('文章发布成功!\n文件URL: ' + data.content.html_url);
+                // 重置表单
+                document.getElementById('post-title').value = '';
+                document.getElementById('post-subtitle').value = '';
+                tinymce.get('post-content').setContent('');
+                document.getElementById('post-category').value = '';
+                document.getElementById('post-tags').value = '';
+                document.getElementById('post-featured-image').value = '';
+                document.getElementById('image-preview').style.display = 'none';
+            })
+            .catch(error => {
+                console.error('发布文章时出错:', error);
+                alert('发布文章失败: ' + error.message);
+            });
+        }
 
         // 简单验证
         if (!title || !content) {
