@@ -158,21 +158,26 @@ description: "在线编辑并发布新文章"
             if (subtitle) {
                 postContent += 'subtitle: "' + subtitle + '"\n';
             }
-            postContent += 'date: ' + today.toISOString() + '\n';
+            // 格式化日期为YYYY-MM-DD HH:MM:SS格式
+            const formattedDate = today.getFullYear() + '-' +
+                                  String(today.getMonth() + 1).padStart(2, '0') + '-' +
+                                  String(today.getDate()).padStart(2, '0') + ' ' +
+                                  String(today.getHours()).padStart(2, '0') + ':' +
+                                  String(today.getMinutes()).padStart(2, '0') + ':' +
+                                  String(today.getSeconds()).padStart(2, '0');
+            postContent += 'date: ' + formattedDate + '\n';
             postContent += 'author: "' + '{{ site.title }}' + '"\n';
-            if (category) {
-                postContent += 'categories: [' + category + ']\n';
-            }
             if (tags) {
                 postContent += 'tags: [' + tags.split(',').map(tag => '"' + tag.trim() + '"').join(', ') + ']\n';
             }
             if (featuredImageBase64) {
+                // 将特色图片设置为背景图片
                 // 提取Base64中的图片格式和数据
                 const base64Parts = featuredImageBase64.split(',');
                 const mimeType = base64Parts[0].split(':')[1].split(';')[0];
                 const imageData = base64Parts[1];
-                // 这里仅作为演示，实际项目中应该上传图片到服务器
-                postContent += 'image: data:' + mimeType + ';base64,' + imageData + '\n';
+                // 设置为header-img
+                postContent += 'header-img: data:' + mimeType + ';base64,' + imageData + '\n';
             }
             postContent += '---\n\n';
             postContent += content;
