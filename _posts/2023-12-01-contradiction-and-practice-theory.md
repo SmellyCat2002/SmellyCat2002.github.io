@@ -4,7 +4,6 @@ title: 矛盾论与实践论的生活智慧
 subtitle: 理解矛盾普遍性，在实践中成长
 date: 2023-12-01
 header-img: img/post-bg-universe.jpg
-author: 思考者
 categories: [思考]
 tags: [哲学, 生活智慧]
 ---
