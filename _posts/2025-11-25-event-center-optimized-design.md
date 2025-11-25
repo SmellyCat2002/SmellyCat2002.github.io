@@ -223,5 +223,5 @@ EventCenter.Instance.RemoveAllTargetedListeners(gameObject);
 ## 代码示例下载
 
 完整的代码实现和使用示例可参考：
-- [EventCenterOptimized.cs](https://github.com/SmellyCat2002/SmellyCat2002.github.io/blob/main/_posts/2025-11-25-event-center-optimized-design.md)
-- [EventCenterExample.cs](https://github.com/SmellyCat2002/SmellyCat2002.github.io/blob/main/_posts/2025-11-25-event-center-optimized-design.md)
+- [EventCenterOptimized.cs](https://github.com/SmellyCat2002/SmellyCat2002.github.io/blob/main/EventCenterOptimized.cs)
+- [EventCenterExample.cs](https://github.com/SmellyCat2002/SmellyCat2002.github.io/blob/main/EventCenterExample.cs)
