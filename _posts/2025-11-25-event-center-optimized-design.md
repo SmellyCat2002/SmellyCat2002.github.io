@@ -1,13 +1,13 @@
 ---
 layout: post
-title: 事件中心优化设计：从耦合到解耦的架构升级之路
+title: C#事件中心优化实现：高效、安全的组件通信方案
 date: 2025-11-25
 header-img: img/post-bg-universe.jpg
 categories: [技术架构]
 tags: [事件中心, C#]
 ---
 
-# 事件中心优化设计：从耦合到解耦的架构升级之路
+# C#事件中心优化实现：高效、安全的组件通信方案
 
 ## 引言
 
