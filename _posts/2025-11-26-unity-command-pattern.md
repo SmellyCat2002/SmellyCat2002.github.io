@@ -9,7 +9,7 @@ tags: [Unity, 命令模式]
 
 # Unity 游戏开发中的命令模式：从入门到实战（附极简代码 + 命令栈实现）
 
-在游戏开发中，我们经常需要处理**操作撤销、技能系统、输入与逻辑解耦**等场景，而**命令模式**作为一种经典的行为型设计模式，正是解决这类问题的 “利器”。很多新手会觉得命令模式复杂、难以理解，其实它的核心思想非常简单 ——**把 “操作” 打包成独立的对象**。
+在游戏开发中，我们经常需要处理**操作撤销、技能系统、输入与逻辑解耦合**等场景，而**命令模式**作为一种经典的行为型设计模式，正是解决这类问题的 “利器”。很多新手会觉得命令模式复杂、难以理解，其实它的核心思想非常简单 ——**把 “操作” 打包成独立的对象**。
 
 本文将从**新手视角**出发，用最通俗的语言和极简的代码，讲解命令模式的核心逻辑、与原始写法的差异、实战实现（含命令栈撤销 / 重做），以及游戏开发中的实际应用场景，内容兼顾专业性和易懂性，适合刚接触设计模式的开发者学习。
 
@@ -35,63 +35,39 @@ tags: [Unity, 命令模式]
 
 ## 二、先看：不用命令模式的原始写法（耦合严重）
 
-我们以 \*\*Unity 中 “玩家按空格键让角色跳跃”\*\* 为例，先看最直接的写法，感受其中的问题：
+我们以 **Unity 中 “玩家按空格键让角色跳跃”** 为例，先看最直接的写法，感受其中的问题：
 
 
 
-```
+```csharp
 using UnityEngine;
 
 // 接收者：角色（实际执行跳跃的对象）
-
 public class Player : MonoBehaviour
-
 {
-
-&#x20;   public void Jump()
-
-&#x20;   {
-
-&#x20;       Debug.Log("角色跳跃！");
-
-&#x20;       transform.Translate(Vector3.up \* 2f); // 简单模拟跳跃
-
-&#x20;   }
-
+    public void Jump()
+    {
+        Debug.Log("角色跳跃！");
+        transform.Translate(Vector3.up * 2f); // 简单模拟跳跃
+    }
 }
 
 // 调用者：输入管理器（触发操作的对象）
-
 public class InputManager : MonoBehaviour
-
 {
-
-&#x20;   private Player \_player;
-
-&#x20;   private void Awake()
-
-&#x20;   {
-
-&#x20;       \_player = FindObjectOfType\<Player>();
-
-&#x20;   }
-
-&#x20;   private void Update()
-
-&#x20;   {
-
-&#x20;       // 按下空格，直接调用角色的Jump方法
-
-&#x20;       if (Input.GetKeyDown(KeyCode.Space))
-
-&#x20;       {
-
-&#x20;           \_player.Jump();
-
-&#x20;       }
-
-&#x20;   }
-
+    private Player _player;
+    private void Awake()
+    {
+        _player = FindObjectOfType<Player>();
+    }
+    private void Update()
+    {
+        // 按下空格，直接调用角色的Jump方法
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            _player.Jump();
+        }
+    }
 }
 ```
 
@@ -133,25 +109,17 @@ public class InputManager : MonoBehaviour
 
 
 
-```
+```csharp
 using UnityEngine;
-
 using System.Collections.Generic;
 
-/// \<summary>
-
+/// <summary>
 /// 命令接口：所有命令的统一标准（执行+撤销）
-
-/// \</summary>
-
+/// </summary>
 public interface ICommand
-
 {
-
-&#x20;   void Execute(); // 执行命令
-
-&#x20;   void Undo();    // 撤销命令
-
+    void Execute(); // 执行命令
+    void Undo();    // 撤销命令
 }
 ```
 
@@ -159,65 +127,40 @@ public interface ICommand
 
 
 
-```
-/// \<summary>
-
+```csharp
+/// <summary>
 /// 角色（接收者）：包含具体操作和撤销的回滚逻辑
-
-/// \</summary>
-
+/// </summary>
 public class Player : MonoBehaviour
-
 {
-
-&#x20;   private Vector3 \_jumpOriginPos; // 记录跳跃前位置（用于撤销）
-
-&#x20;   // 跳跃操作
-
-&#x20;   public void Jump()
-
-&#x20;   {
-
-&#x20;       \_jumpOriginPos = transform.position; // 记录原始位置
-
-&#x20;       transform.Translate(Vector3.up \* 2f);
-
-&#x20;       Debug.Log(\$"角色跳跃：位置→{transform.position}");
-
-&#x20;   }
-
-&#x20;   // 撤销跳跃（回滚逻辑）
-
-&#x20;   public void UndoJump()
-
-&#x20;   {
-
-&#x20;       transform.position = \_jumpOriginPos;
-
-&#x20;       Debug.Log(\$"撤销跳跃：位置→{transform.position}");
-
-&#x20;   }
-
-&#x20;   // 攻击操作
-
-&#x20;   public void Attack()
-
-&#x20;   {
-
-&#x20;       Debug.Log("角色发起攻击！");
-
-&#x20;   }
-
-&#x20;   // 撤销攻击
-
-&#x20;   public void UndoAttack()
-
-&#x20;   {
-
-&#x20;       Debug.Log("撤销攻击：取消攻击效果");
-
-&#x20;   }
-
+    private Vector3 _jumpOriginPos; // 记录跳跃前位置（用于撤销）
+    
+    // 跳跃操作
+    public void Jump()
+    {
+        _jumpOriginPos = transform.position; // 记录原始位置
+        transform.Translate(Vector3.up * 2f);
+        Debug.Log($"角色跳跃：位置→{transform.position}");
+    }
+    
+    // 撤销跳跃（回滚逻辑）
+    public void UndoJump()
+    {
+        transform.position = _jumpOriginPos;
+        Debug.Log($"撤销跳跃：位置→{transform.position}");
+    }
+    
+    // 攻击操作
+    public void Attack()
+    {
+        Debug.Log("角色发起攻击！");
+    }
+    
+    // 撤销攻击
+    public void UndoAttack()
+    {
+        Debug.Log("撤销攻击：取消攻击效果");
+    }
 }
 ```
 
@@ -225,57 +168,37 @@ public class Player : MonoBehaviour
 
 
 
-```
-/// \<summary>
-
+```csharp
+/// <summary>
 /// 跳跃命令：绑定角色和跳跃操作
-
-/// \</summary>
-
+/// </summary>
 public class JumpCommand : ICommand
-
 {
-
-&#x20;   private readonly Player \_player; // 接收者引用
-
-&#x20;   public JumpCommand(Player player)
-
-&#x20;   {
-
-&#x20;       \_player = player;
-
-&#x20;   }
-
-&#x20;   public void Execute() => \_player.Jump();
-
-&#x20;   public void Undo() => \_player.UndoJump();
-
+    private readonly Player _player; // 接收者引用
+    
+    public JumpCommand(Player player)
+    {
+        _player = player;
+    }
+    
+    public void Execute() => _player.Jump();
+    public void Undo() => _player.UndoJump();
 }
 
-/// \<summary>
-
+/// <summary>
 /// 攻击命令：绑定角色和攻击操作
-
-/// \</summary>
-
+/// </summary>
 public class AttackCommand : ICommand
-
 {
-
-&#x20;   private readonly Player \_player;
-
-&#x20;   public AttackCommand(Player player)
-
-&#x20;   {
-
-&#x20;       \_player = player;
-
-&#x20;   }
-
-&#x20;   public void Execute() => \_player.Attack();
-
-&#x20;   public void Undo() => \_player.UndoAttack();
-
+    private readonly Player _player;
+    
+    public AttackCommand(Player player)
+    {
+        _player = player;
+    }
+    
+    public void Execute() => _player.Attack();
+    public void Undo() => _player.UndoAttack();
 }
 ```
 
@@ -283,203 +206,122 @@ public class AttackCommand : ICommand
 
 
 
-```
-/// \<summary>
-
+```csharp
+/// <summary>
 /// 命令管理器（实战必备）：用栈管理命令，支持执行、撤销、重做
-
-/// \</summary>
-
+/// </summary>
 public class CommandManager : MonoBehaviour
-
 {
-
-&#x20;   // 单例：全局唯一（Unity游戏开发常用）
-
-&#x20;   public static CommandManager Instance { get; private set; }
-
-&#x20;   // 执行栈：存储已执行的命令（用于撤销）
-
-&#x20;   private readonly Stack\<ICommand> \_executeStack = new Stack\<ICommand>();
-
-&#x20;   // 重做栈：存储被撤销的命令（用于重做）
-
-&#x20;   private readonly Stack\<ICommand> \_redoStack = new Stack\<ICommand>();
-
-&#x20;   private void Awake()
-
-&#x20;   {
-
-&#x20;       // 单例初始化（避免多个管理器）
-
-&#x20;       if (Instance == null)
-
-&#x20;       {
-
-&#x20;           Instance = this;
-
-&#x20;           DontDestroyOnLoad(gameObject); // 场景切换不销毁
-
-&#x20;       }
-
-&#x20;       else
-
-&#x20;       {
-
-&#x20;           Destroy(gameObject);
-
-&#x20;       }
-
-&#x20;   }
-
-&#x20;   /// \<summary>
-
-&#x20;   /// 执行命令（核心方法）
-
-&#x20;   /// \</summary>
-
-&#x20;   public void ExecuteCommand(ICommand command)
-
-&#x20;   {
-
-&#x20;       command.Execute();
-
-&#x20;       \_executeStack.Push(command); // 压入执行栈
-
-&#x20;       \_redoStack.Clear(); // 执行新命令后，清空重做栈（符合用户直觉）
-
-&#x20;   }
-
-&#x20;   /// \<summary>
-
-&#x20;   /// 撤销上一个命令
-
-&#x20;   /// \</summary>
-
-&#x20;   public void UndoLast()
-
-&#x20;   {
-
-&#x20;       if (\_executeStack.Count == 0)
-
-&#x20;       {
-
-&#x20;           Debug.LogWarning("无命令可撤销！");
-
-&#x20;           return;
-
-&#x20;       }
-
-&#x20;       var cmd = \_executeStack.Pop();
-
-&#x20;       cmd.Undo();
-
-&#x20;       \_redoStack.Push(cmd); // 压入重做栈
-
-&#x20;   }
-
-&#x20;   /// \<summary>
-
-&#x20;   /// 重做上一个被撤销的命令
-
-&#x20;   /// \</summary>
-
-&#x20;   public void RedoLast()
-
-&#x20;   {
-
-&#x20;       if (\_redoStack.Count == 0)
-
-&#x20;       {
-
-&#x20;           Debug.LogWarning("无命令可重做！");
-
-&#x20;           return;
-
-&#x20;       }
-
-&#x20;       var cmd = \_redoStack.Pop();
-
-&#x20;       cmd.Execute();
-
-&#x20;       \_executeStack.Push(cmd);
-
-&#x20;   }
-
+    // 单例：全局唯一（Unity游戏开发常用）
+    public static CommandManager Instance { get; private set; }
+    
+    // 执行栈：存储已执行的命令（用于撤销）
+    private readonly Stack<ICommand> _executeStack = new Stack<ICommand>();
+    
+    // 重做栈：存储被撤销的命令（用于重做）
+    private readonly Stack<ICommand> _redoStack = new Stack<ICommand>();
+    
+    private void Awake()
+    {
+        // 单例初始化（避免多个管理器）
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject); // 场景切换不销毁
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
+    
+    /// <summary>
+    /// 执行命令（核心方法）
+    /// </summary>
+    public void ExecuteCommand(ICommand command)
+    {
+        command.Execute();
+        _executeStack.Push(command); // 压入执行栈
+        _redoStack.Clear(); // 执行新命令后，清空重做栈（符合用户直觉）
+    }
+    
+    /// <summary>
+    /// 撤销上一个命令
+    /// </summary>
+    public void UndoLast()
+    {
+        if (_executeStack.Count == 0)
+        {
+            Debug.LogWarning("无命令可撤销！");
+            return;
+        }
+        
+        var cmd = _executeStack.Pop();
+        cmd.Undo();
+        _redoStack.Push(cmd); // 压入重做栈
+    }
+    
+    /// <summary>
+    /// 重做上一个被撤销的命令
+    /// </summary>
+    public void RedoLast()
+    {
+        if (_redoStack.Count == 0)
+        {
+            Debug.LogWarning("无命令可重做！");
+            return;
+        }
+        
+        var cmd = _redoStack.Pop();
+        cmd.Execute();
+        _executeStack.Push(cmd);
+    }
 }
 ```
 
-### 5. 调用者：输入管理器（仅检测输入，解耦）
+### 5. 调用者：输入管理器（仅检测输入，解耦合）
 
 
 
-```
-/// \<summary>
-
+```csharp
+/// <summary>
 /// 输入管理器（调用者）：仅检测输入，不关心具体操作
-
-/// \</summary>
-
+/// </summary>
 public class InputManager : MonoBehaviour
-
 {
-
-&#x20;   private Player \_player;
-
-&#x20;   private void Awake()
-
-&#x20;   {
-
-&#x20;       \_player = FindObjectOfType\<Player>();
-
-&#x20;   }
-
-&#x20;   private void Update()
-
-&#x20;   {
-
-&#x20;       // 空格：执行跳跃命令
-
-&#x20;       if (Input.GetKeyDown(KeyCode.Space))
-
-&#x20;       {
-
-&#x20;           CommandManager.Instance.ExecuteCommand(new JumpCommand(\_player));
-
-&#x20;       }
-
-&#x20;       // 鼠标左键：执行攻击命令
-
-&#x20;       if (Input.GetMouseButtonDown(0))
-
-&#x20;       {
-
-&#x20;           CommandManager.Instance.ExecuteCommand(new AttackCommand(\_player));
-
-&#x20;       }
-
-&#x20;       // Z键：撤销
-
-&#x20;       if (Input.GetKeyDown(KeyCode.Z))
-
-&#x20;       {
-
-&#x20;           CommandManager.Instance.UndoLast();
-
-&#x20;       }
-
-&#x20;       // R键：重做
-
-&#x20;       if (Input.GetKeyDown(KeyCode.R))
-
-&#x20;       {
-
-&#x20;           CommandManager.Instance.RedoLast();
-
-&#x20;       }
-
-&#x20;   }
-
+    private Player _player;
+    
+    private void Awake()
+    {
+        _player = FindObjectOfType<Player>();
+    }
+    
+    private void Update()
+    {
+        // 空格：执行跳跃命令
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            CommandManager.Instance.ExecuteCommand(new JumpCommand(_player));
+        }
+        
+        // 鼠标左键：执行攻击命令
+        if (Input.GetMouseButtonDown(0))
+        {
+            CommandManager.Instance.ExecuteCommand(new AttackCommand(_player));
+        }
+        
+        // Z键：撤销
+        if (Input.GetKeyDown(KeyCode.Z))
+        {
+            CommandManager.Instance.UndoLast();
+        }
+        
+        // R键：重做
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            CommandManager.Instance.RedoLast();
+        }
+    }
 }
 ```
 
@@ -557,10 +399,8 @@ public class InputManager : MonoBehaviour
 
 3. **核心优势**：解耦、支持撤销 / 重做、符合开闭原则、可扩展宏命令；
 
-4. **适用场景**：操作撤销、输入解耦、技能系统、连招系统等。
+4. **适用场景**：操作撤销、输入解耦合、技能系统、连招系统等。
 
 命令模式并不是 “多余的复杂代码”，而是工业级项目中解决特定问题的标准方案。新手可以先从极简版代码入手，理解核心逻辑后，再根据项目需求扩展功能（如宏命令、命令序列化）。
 
 希望本文能帮助你彻底理解命令模式，并能在 Unity 项目中灵活应用！
-
-> （注：文档部分内容可能由 AI 生成）
