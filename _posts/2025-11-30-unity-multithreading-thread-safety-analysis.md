@@ -90,45 +90,27 @@ Unity 核心 API（如`Transform`、UI、`GameObject`）仅支持主线程调用
 
 
 
-```
+```csharp
 using System.Threading;
-
 using UnityEngine;
 
 public class RaceConditionTest : MonoBehaviour
-
 {
-
-&#x20;   private int \_killCount = 0; // 共享资源：玩家击杀数
-
-&#x20;   private void Start()
-
-&#x20;   {
-
-&#x20;       // 两个线程同时修改共享资源
-
-&#x20;       new Thread(() => AddKillCount(1000)).Start();
-
-&#x20;       new Thread(() => AddKillCount(1000)).Start();
-
-&#x20;   }
-
-&#x20;   private void AddKillCount(int times)
-
-&#x20;   {
-
-&#x20;       for (int i = 0; i  i++)
-
-&#x20;       {
-
-&#x20;           \_killCount++; // 非原子操作，易被打断
-
-&#x20;       }
-
-&#x20;       Debug.Log(\$"击杀数统计完成：{\_killCount}"); // 预期2000，实际远小于2000
-
-&#x20;   }
-
+    private int _killCount = 0; // 共享资源：玩家击杀数
+    private void Start()
+    {
+        // 两个线程同时修改共享资源
+        new Thread(() => AddKillCount(1000)).Start();
+        new Thread(() => AddKillCount(1000)).Start();
+    }
+    private void AddKillCount(int times)
+    {
+        for (int i = 0; i < times; i++)
+        {
+            _killCount++; // 非原子操作，易被打断
+        }
+        Debug.Log($"击杀数统计完成：{_killCount}"); // 预期2000，实际远小于2000
+    }
 }
 ```
 
@@ -152,21 +134,14 @@ public class RaceConditionTest : MonoBehaviour
 
 
 
-```
+```csharp
 private void AddKillCount(int times)
-
 {
-
-&#x20;   for (int i = 0; i&#x20;
-
-&#x20;   {
-
-&#x20;       Interlocked.Increment(ref \_killCount); // CPU级原子操作，不可打断
-
-&#x20;   }
-
-&#x20;   Debug.Log(\$"击杀数统计完成：{\_killCount}"); // 稳定输出2000
-
+    for (int i = 0; i < times; i++)
+    {
+        Interlocked.Increment(ref _killCount); // CPU级原子操作，不可打断
+    }
+    Debug.Log($"击杀数统计完成：{_killCount}"); // 稳定输出2000
 }
 ```
 
@@ -180,39 +155,23 @@ private void AddKillCount(int times)
 
 
 
-```
-private readonly object \_lockObj = new object(); // 私有只读锁对象，避免外部调用
-
+```csharp
+private readonly object _lockObj = new object(); // 私有只读锁对象，避免外部调用
 private void AddKillCount(int times)
-
 {
-
-&#x20;   for (int i = 0; i  i++)
-
-&#x20;   {
-
-&#x20;       lock (\_lockObj) // 锁定代码块，确保原子执行
-
-&#x20;       {
-
-&#x20;           \_killCount++;
-
-&#x20;           // 支持复杂逻辑扩展（如成就解锁判断）
-
-&#x20;           if (\_killCount >= 1000)
-
-&#x20;           {
-
-&#x20;               Debug.Log("解锁“百人斩”成就！");
-
-&#x20;           }
-
-&#x20;       }
-
-&#x20;   }
-
-&#x20;   Debug.Log(\$"击杀数统计完成：{\_killCount}");
-
+    for (int i = 0; i < times; i++)
+    {
+        lock (_lockObj) // 锁定代码块，确保原子执行
+        {
+            _killCount++;
+            // 支持复杂逻辑扩展（如成就解锁判断）
+            if (_killCount >= 1000)
+            {
+                Debug.Log("解锁"百人斩"成就！");
+            }
+        }
+    }
+    Debug.Log($"击杀数统计完成：{_killCount}");
 }
 ```
 
@@ -224,45 +183,27 @@ private void AddKillCount(int times)
 
 
 
-```
+```csharp
 using System.Collections.Concurrent;
-
 using UnityEngine;
 
 public class ThreadSafeCollectionTest : MonoBehaviour
-
 {
-
-&#x20;   // 线程安全集合，替代非线程安全的List
-
-&#x20;   private readonly ConcurrentBagList = new ConcurrentBag>();
-
-&#x20;   private void Start()
-
-&#x20;   {
-
-&#x20;       new Thread(() => AddEnemy(1000, "近战敌人")).Start();
-
-&#x20;       new Thread(() => AddEnemy(1000, "远程敌人")).Start();
-
-&#x20;   }
-
-&#x20;   private void AddEnemy(int times, string enemyType)
-
-&#x20;   {
-
-&#x20;       for (int i = 0; i  i++)
-
-&#x20;       {
-
-&#x20;           \_enemyList.Add(\$"{enemyType}{i}"); // 线程安全操作
-
-&#x20;       }
-
-&#x20;       Debug.Log(\$"敌人总数：{\_enemyList.Count}"); // 稳定输出2000
-
-&#x20;   }
-
+    // 线程安全集合，替代非线程安全的List
+    private readonly ConcurrentBag<string> _enemyList = new ConcurrentBag<string>();
+    private void Start()
+    {
+        new Thread(() => AddEnemy(1000, "近战敌人")).Start();
+        new Thread(() => AddEnemy(1000, "远程敌人")).Start();
+    }
+    private void AddEnemy(int times, string enemyType)
+    {
+        for (int i = 0; i < times; i++)
+        {
+            _enemyList.Add($"{enemyType}{i}"); // 线程安全操作
+        }
+        Debug.Log($"敌人总数：{_enemyList.Count}"); // 稳定输出2000
+    }
 }
 ```
 
@@ -271,11 +212,11 @@ public class ThreadSafeCollectionTest : MonoBehaviour
 * 常用线程安全集合选型：
 
 
-  * \`ConcurrentQueue 先进先出，适合生产者 - 消费者场景（如任务队列）；
+  * `ConcurrentQueue<T>`：先进先出，适合生产者 - 消费者场景（如任务队列）；
 
-  * `ConcurrentDictionary TValue>`：键值对存储，适合缓存数据；
+  * `ConcurrentDictionary<TKey, TValue>`：键值对存储，适合缓存数据；
 
-  * \`ConcurrentBag，适合无顺序要求的添加 / 获取场景。
+  * `ConcurrentBag<T>`：无序集合，适合无顺序要求的添加 / 获取场景。
 
 ## 五、死锁：条件拆解与解决方案
 
@@ -294,71 +235,41 @@ public class ThreadSafeCollectionTest : MonoBehaviour
 
 
 
-```
+```csharp
 using System.Threading;
-
 using UnityEngine;
 
 public class Player
-
 {
-
-&#x20;   public int Id { get; }
-
-&#x20;   private readonly object \_itemLock = new object(); // 道具栏锁
-
-&#x20;   public Player(int id) => Id = id;
-
-&#x20;   // 交换道具：先锁自己，再锁目标（局部逻辑合理，全局冲突）
-
-&#x20;   public void ExchangeItem(Player targetPlayer)
-
-&#x20;   {
-
-&#x20;       lock (\_itemLock)
-
-&#x20;       {
-
-&#x20;           Thread.Sleep(100); // 模拟业务逻辑，放大死锁概率
-
-&#x20;           Debug.Log(\$"玩家{Id}已锁定自己的道具栏，等待锁定玩家{targetPlayer.Id}的道具栏");
-
-&#x20;          &#x20;
-
-&#x20;           lock (targetPlayer.\_itemLock)
-
-&#x20;           {
-
-&#x20;               Debug.Log(\$"玩家{Id}与玩家{targetPlayer.Id}交换道具完成！");
-
-&#x20;           }
-
-&#x20;       }
-
-&#x20;   }
-
+    public int Id { get; }
+    private readonly object _itemLock = new object(); // 道具栏锁
+    public Player(int id) => Id = id;
+    // 交换道具：先锁自己，再锁目标（局部逻辑合理，全局冲突）
+    public void ExchangeItem(Player targetPlayer)
+    {
+        lock (_itemLock)
+        {
+            Thread.Sleep(100); // 模拟业务逻辑，放大死锁概率
+            Debug.Log($"玩家{Id}已锁定自己的道具栏，等待锁定玩家{targetPlayer.Id}的道具栏");
+            
+            lock (targetPlayer._itemLock)
+            {
+                Debug.Log($"玩家{Id}与玩家{targetPlayer.Id}交换道具完成！");
+            }
+        }
+    }
 }
 
 public class DeadlockTest : MonoBehaviour
-
 {
-
-&#x20;   private void Start()
-
-&#x20;   {
-
-&#x20;       Player playerA = new Player(1);
-
-&#x20;       Player playerB = new Player(2);
-
-&#x20;       // 两个线程反向获取锁
-
-&#x20;       new Thread(() => playerA.ExchangeItem(playerB)).Start();
-
-&#x20;       new Thread(() => playerB.ExchangeItem(playerA)).Start();
-
-&#x20;   }
-
+    private void Start()
+    {
+        Player playerA = new Player(1);
+        Player playerB = new Player(2);
+        // 两个线程反向获取锁
+        new Thread(() => playerA.ExchangeItem(playerB)).Start();
+        new Thread(() => playerB.ExchangeItem(playerA)).Start();
+    }
 }
 ```
 
@@ -384,39 +295,23 @@ public class DeadlockTest : MonoBehaviour
 
 
 
-```
+```csharp
 public void ExchangeItem(Player targetPlayer)
-
 {
-
-&#x20;   // 第一步：按玩家ID排序，统一锁顺序（先小后大）
-
-&#x20;   Player firstLock = Id Player.Id ? this : targetPlayer;
-
-&#x20;   Player secondLock = Id .Id ? targetPlayer : this;
-
-&#x20;   // 第二步：按统一顺序加锁
-
-&#x20;   lock (firstLock.\_itemLock)
-
-&#x20;   {
-
-&#x20;       Thread.Sleep(100);
-
-&#x20;       Debug.Log(\$"玩家{Id}已锁定玩家{firstLock.Id}的道具栏，等待锁定玩家{secondLock.Id}的道具栏");
-
-&#x20;      &#x20;
-
-&#x20;       lock (secondLock.\_itemLock)
-
-&#x20;       {
-
-&#x20;           Debug.Log(\$"玩家{Id}与玩家{targetPlayer.Id}交换道具完成！");
-
-&#x20;       }
-
-&#x20;   }
-
+    // 第一步：按玩家ID排序，统一锁顺序（先小后大）
+    Player firstLock = Id < targetPlayer.Id ? this : targetPlayer;
+    Player secondLock = Id < targetPlayer.Id ? targetPlayer : this;
+    // 第二步：按统一顺序加锁
+    lock (firstLock._itemLock)
+    {
+        Thread.Sleep(100);
+        Debug.Log($"玩家{Id}已锁定玩家{firstLock.Id}的道具栏，等待锁定玩家{secondLock.Id}的道具栏");
+        
+        lock (secondLock._itemLock)
+        {
+            Debug.Log($"玩家{Id}与玩家{targetPlayer.Id}交换道具完成！");
+        }
+    }
 }
 ```
 
@@ -432,55 +327,31 @@ public void ExchangeItem(Player targetPlayer)
 
 
 
-```
+```csharp
 public void ExchangeItem(Player targetPlayer)
-
 {
-
-&#x20;   lock (\_itemLock)
-
-&#x20;   {
-
-&#x20;       Thread.Sleep(100);
-
-&#x20;       Debug.Log(\$"玩家{Id}已锁定自己的道具栏，等待锁定玩家{targetPlayer.Id}的道具栏");
-
-&#x20;      &#x20;
-
-&#x20;       // 尝试获取目标锁，超时100ms，获取失败则放弃
-
-&#x20;       if (Monitor.TryEnter(targetPlayer.\_itemLock, 100))
-
-&#x20;       {
-
-&#x20;           try
-
-&#x20;           {
-
-&#x20;               Debug.Log(\$"玩家{Id}与玩家{targetPlayer.Id}交换道具完成！");
-
-&#x20;           }
-
-&#x20;           finally
-
-&#x20;           {
-
-&#x20;               Monitor.Exit(targetPlayer.\_itemLock); // 手动释放锁
-
-&#x20;           }
-
-&#x20;       }
-
-&#x20;       else
-
-&#x20;       {
-
-&#x20;           Debug.Log(\$"玩家{Id}获取锁超时，交换失败！");
-
-&#x20;       }
-
-&#x20;   }
-
+    lock (_itemLock)
+    {
+        Thread.Sleep(100);
+        Debug.Log($"玩家{Id}已锁定自己的道具栏，等待锁定玩家{targetPlayer.Id}的道具栏");
+        
+        // 尝试获取目标锁，超时100ms，获取失败则放弃
+        if (Monitor.TryEnter(targetPlayer._itemLock, 100))
+        {
+            try
+            {
+                Debug.Log($"玩家{Id}与玩家{targetPlayer.Id}交换道具完成！");
+            }
+            finally
+            {
+                Monitor.Exit(targetPlayer._itemLock); // 手动释放锁
+            }
+        }
+        else
+        {
+            Debug.Log($"玩家{Id}获取锁超时，交换失败！");
+        }
+    }
 }
 ```
 
