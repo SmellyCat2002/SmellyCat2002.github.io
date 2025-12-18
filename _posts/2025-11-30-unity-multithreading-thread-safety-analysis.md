@@ -383,4 +383,3 @@ public void ExchangeItem(Player targetPlayer)
 
 * 具体性：主动关联 Unity 平台特性，说明子线程 API 调用限制及解决方案。
 
-> （注：文档部分内容可能由 AI 生成）
