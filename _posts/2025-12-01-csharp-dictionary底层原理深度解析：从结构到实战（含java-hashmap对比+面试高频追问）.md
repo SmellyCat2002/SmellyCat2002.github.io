@@ -1,4 +1,4 @@
-# C# Dictionary 底层原理深度解析：从结构到实战（含 Java HashMap 对比 + 面试高频追问）
+# C# Dictionary 底层原理深度解析：从结构到实战（含 Java HashMap 对比 + 高频问题）
 
 **核心对比（简易版）**：
 
