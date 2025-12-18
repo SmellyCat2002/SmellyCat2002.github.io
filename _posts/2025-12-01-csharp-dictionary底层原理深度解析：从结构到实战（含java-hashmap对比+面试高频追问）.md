@@ -65,8 +65,8 @@ private struct Entry
 
   * 负载因子：默认 0.72（微软测试的黄金平衡点，平衡冲突率与内存利用率）。
 
-![C# Dictionary 双数组结构示意图](/img/c%23dictionary.jpg)
-*C# Dictionary 双数组结构示意图：buckets 数组管理哈希索引，entries 数组存储键值对数据*
+![Csharp Dictionary 双数组结构示意图](/img/c%23dictionary.jpg)
+*Csharp Dictionary 双数组结构示意图：buckets 数组管理哈希索引，entries 数组存储键值对数据*
 
 ### 2. 核心工作流程：以 Add 操作为例（哈希处理仅关联`buckets`）
 
