@@ -19,62 +19,66 @@ date: 2025-12-19
 
 - 若赋值的是「值类型变量/字段」（如 `int age2 = p1.Age`），无论该值类型存储在栈还是堆，必然是「值拷贝」——生成独立副本，修改副本不会影响原数据。
 
+## 代码示例：引用类型的引用拷贝演示
+
+以下是一个完整的C#代码示例，清晰展示了引用类型的引用拷贝行为：
+
+```csharp
+using System;
+ 
+// 定义引用类型：Person 
+public class Person 
+{
+    // 包含一个int数组字段（数组是引用类型） 
+    public int[] Scores { get; set; } 
+    // 普通值类型字段 
+    public int Age { get; set; } 
+}
+ 
+class Program 
+{
+    static void Main() 
+    {
+        // 1. 创建Person对象p1，初始化数组和年龄 
+        Person p1 = new Person 
+        {
+            Scores = new int[] { 90, 80, 70 }, // 数组在堆上 
+            Age = 20
+        };
+
+        // 2. 引用拷贝：p2和p1指向同一个Person对象（堆上的同一个地址） 
+        Person p2 = p1;
+
+        // 3. 修改p1的数组第一个元素 
+        p1.Scores[0] = 100;
+
+        // 4. 查看p2的数组第一个元素 
+        Console.WriteLine("p1.Scores[0] = " + p1.Scores[0]); // 输出：100 
+        Console.WriteLine("p2.Scores[0] = " + p2.Scores[0]); // 输出：100（同步变化） 
+
+        // 5. 补充：修改值类型字段也会同步（因为是同一个Person对象） 
+        p1.Age = 25;
+        Console.WriteLine("p2.Age = " + p2.Age); // 输出：25（同步变化） 
+    }
+}
+```
+
+### 代码解析：
+
+1. **引用类型定义**：`Person`类是引用类型，包含：
+   - `Scores`：int数组，虽然int是值类型，但数组本身是引用类型
+   - `Age`：int值类型字段
+
+2. **引用拷贝行为**：
+   - `Person p2 = p1`：这是引用拷贝，p2和p1指向堆上的同一个Person对象
+   - 修改`p1.Scores[0]`：由于Scores是数组（引用类型），且p1和p2指向同一个Person对象，所以p2.Scores[0]也同步变为100
+   - 修改`p1.Age`：虽然Age是值类型，但由于p1和p2指向同一个Person对象，所以p2.Age也同步变为25
+
+3. **核心验证**：
+   - 这个示例完美验证了文章的核心观点：**赋值变量的类型（这里是Person引用类型）决定了拷贝方式（引用拷贝）**
+   - 无论是修改对象内的引用类型字段还是值类型字段，由于是同一个对象，所以都会同步变化
+   - "是否互相影响"是引用拷贝的自然结果，而非字段类型导致
+
 ## 核心总结
 
 从“看结果倒推”到“看赋值本质”，是理清这个知识点的关键：**“是否互相影响”是拷贝方式的结果，而“赋值变量的类型”才是决定拷贝方式的原因**。抓住这个核心，再复杂的嵌套层级（如引用类型包含值类型字段），也能一眼看穿本质。
-
----
-
-## 代码实现补充：基于事件中心的C#值类型/引用类型实践
-
-为了更好地理解值类型与引用类型在实际开发中的应用，我们可以通过项目中的`EventCenterOptimized.cs`和`EventCenterExample.cs`文件来深入分析：
-
-### EventCenterOptimized.cs 核心设计
-
-这是一个优化的事件中心实现，其设计充分体现了值类型与引用类型的应用：
-
-1. **引用类型的应用**
-   - 事件字典`Dictionary<string, IEventInfo>`：`Dictionary`本身是引用类型，存储了事件名称与事件信息的映射关系
-   - 事件信息接口`IEventInfo`及其实现类：通过接口实现多态，所有事件信息对象都是引用类型
-   - 目标对象绑定：`Dictionary<object, UnityAction<T>>`存储特定目标的事件回调，`object`是引用类型的基类
-
-2. **值类型的应用**
-   - 泛型参数`T`、`T1`、`T2`：支持值类型参数的事件传递（如`int`、`bool`等）
-   - 事件名称`string`：虽然`string`是引用类型，但它具有值类型的不可变性特性
-
-3. **关键设计亮点**
-   ```csharp
-   // 接口定义实现了不同事件类型的统一管理
-   public interface IEventInfo
-   {
-       void RemoveTarget(object target);
-   }
-   
-   // 泛型事件信息类支持不同参数类型
-   public class EventInfo<T> : IEventInfo
-   {
-       public UnityAction<T> actions;
-       public Dictionary<object, UnityAction<T>> targetActions = new Dictionary<object, UnityAction<T>>();
-       // ...
-   }
-   ```
-
-### EventCenterExample.cs 使用示例
-
-该示例演示了如何在Unity中使用事件中心，体现了引用类型的实际应用：
-
-1. **引用类型的事件传递**
-   - 事件回调`UnityAction`：委托是引用类型，通过引用传递实现事件订阅与发布
-   - 目标对象绑定：`GameObject testObjectA`和`testObjectB`是引用类型，事件中心通过引用管理不同对象的事件监听器
-
-2. **值类型的事件参数**
-   - 支持传递值类型参数（如`int`、`string`），即使参数是值类型，事件传递机制仍然基于引用类型的委托实现
-
-### 与文章主题的联系
-
-事件中心的实现清晰地展示了文章中提到的核心观点：
-
-- **赋值变量的类型决定拷贝方式**：在事件中心中，`UnityAction`委托是引用类型，赋值时进行引用拷贝；而事件参数如果是值类型，则进行值拷贝
-- **引用类型包含值类型字段**：`EventInfo<T>`类（引用类型）包含了`UnityAction<T>`委托（引用类型）和`Dictionary<object, UnityAction<T>>`（引用类型），体现了复杂的引用类型嵌套结构
-
-通过这个实际案例，我们可以更直观地理解值类型与引用类型在实际开发中的应用，以及它们的核心区别。
