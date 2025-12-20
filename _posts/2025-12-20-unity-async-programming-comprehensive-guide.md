@@ -174,15 +174,22 @@ public class UniversalAsyncWithUniTask : MonoBehaviour
 
 ## （三）统一场景速查表（按双原则匹配）
 
-<div class="table-container">
-|任务/场景类型|是否用Unity API|任务类型（等待/计算）|推荐方案|能否手动开多线程|核心原因|正确做法|
-|---|---|---|---|---|---|---|
-|**Unity资源**/场景加载（Resources.LoadAsync）、UnityWebRequest|是|等待型|协程 / UniTask|❌ 不能|Unity原生异步API，底层已处理多线程；等待型任务无需额外开线程|用协程或UniTask等待结果，主线程操作Unity对象|
-|**.NET网络请求**（HttpClient）|否|等待型|UniTask|✅ 可以（无需主动开）|通用操作，等待型任务；UniTask自动优化调度，无需手动开线程|await+UniTask，结果自动回调主线程|
-|文件I/O（**本地文件读写**）|否|等待型|UniTask|✅ 可以（无需主动开）|通用操作，等待型任务；.NET API原生支持异步，无需手动开线程|用UniTask调用FileAsync API，结果回调主线程|
-|**纯计算任务**（解析大JSON/XML、A*寻路、噪声图生成）|否|CPU计算型|UniTask + Task.Run|✅ 必须开|通用操作，持续消耗CPU；Unity无法提前适配，需开线程分担压力|Task.Run开子线程计算，UniTask等待结果回调主线程|
-|**游戏对象**操作（移动、销毁、UI更新）|是|非耗时/短等待型|主线程同步 / 协程|❌ 绝对不能|直接操作Unity对象，子线程操作会报错；非耗时任务无需异步|必须在主线程执行，耗时短的可分段用协程非阻塞执行|
-</div>
+### 1. Unity API相关场景
+|任务/场景类型|推荐方案|核心说明|
+|---|---|---|
+|**Unity资源**/场景加载（Resources.LoadAsync）、UnityWebRequest|协程 / UniTask|使用Unity原生异步API，无需手动开线程；等待型任务，底层已处理多线程调度|
+|**游戏对象**操作（移动、销毁、UI更新）|主线程同步 / 协程|直接操作Unity对象必须在主线程执行，非耗时任务无需异步|
+
+### 2. 通用异步场景
+|任务/场景类型|推荐方案|核心说明|
+|---|---|---|
+|**.NET网络请求**（HttpClient）|UniTask|通用等待型任务，UniTask自动优化调度，无需手动开线程|
+|文件I/O（**本地文件读写**）|UniTask|通用等待型任务，.NET API原生支持异步，无需手动开线程|
+
+### 3. 计算密集型场景
+|任务/场景类型|推荐方案|核心说明|
+|---|---|---|
+|**纯计算任务**（解析大JSON/XML、A*寻路、噪声图生成）|UniTask + Task.Run|持续消耗CPU的通用操作，需用Task.Run开子线程计算，UniTask等待结果回调主线程|
 # 四、原理深挖：打破认知误区
 
 理解底层原理，避免“知其然不知其所以然”，解决新手高频困惑（如“Task是不是线程？”“await为什么不阻塞？”）。
