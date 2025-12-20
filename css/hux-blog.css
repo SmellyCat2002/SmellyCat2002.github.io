@@ -1620,6 +1620,31 @@ img::-moz-selection {
   height: auto;
   margin: 1.5em auto 1.6em auto;
 }
+
+/* Table styles */
+.post-container table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5em 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.post-container table th,
+.post-container table td {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  text-align: left;
+}
+
+.post-container table th {
+  background-color: #f5f5f5;
+  font-weight: 600;
+}
+
+.post-container table tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
 /* Hux Optimize UserExperience */
 .navbar-default .navbar-toggle:focus,
 .navbar-default .navbar-toggle:hover {
