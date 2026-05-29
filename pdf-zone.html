@@ -1,0 +1,65 @@
+---
+layout: page
+title: "PDF Zone"
+description: "「文档专区」"
+header-mask: 0.3
+header-img: img/about-bg.svg
+---
+
+<div class="post-container">
+    <h2>PDF 文档专区</h2>
+    <p>这里收录了一些PDF格式的文档资料，点击即可查看或下载。</p>
+    
+    <hr>
+    
+    <div class="pdf-list">
+        <div class="pdf-item">
+            <h3>
+                <i class="fa fa-file-pdf-o" style="color: #e74c3c;"></i>
+                <a href="{{ site.baseurl }}/九日只狼战斗拆解.pdf" target="_blank">九日只狼战斗拆解</a>
+            </h3>
+            <p class="pdf-description">游戏战斗系统分析文档</p>
+        </div>
+    </div>
+</div>
+
+<style>
+.pdf-list {
+    margin-top: 30px;
+}
+
+.pdf-item {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border-left: 4px solid #e74c3c;
+    transition: all 0.3s ease;
+}
+
+.pdf-item:hover {
+    background: #e9ecef;
+    transform: translateX(5px);
+}
+
+.pdf-item h3 {
+    margin: 0 0 10px 0;
+    font-size: 1.3em;
+}
+
+.pdf-item h3 a {
+    color: #333;
+    text-decoration: none;
+    margin-left: 10px;
+}
+
+.pdf-item h3 a:hover {
+    color: #e74c3c;
+}
+
+.pdf-description {
+    color: #666;
+    margin: 0;
+    font-size: 0.95em;
+}
+</style>
