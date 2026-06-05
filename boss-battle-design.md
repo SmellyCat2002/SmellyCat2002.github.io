@@ -1,3 +1,9 @@
+---
+layout: page
+title: "Boss 战技能设计文档"
+hide-in-nav: true
+---
+
 # Boss 战技能设计文档
 
 ---

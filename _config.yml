@@ -74,7 +74,7 @@ netease_comment: false
 
 # Sidebar settings
 sidebar: true # whether or not using Sidebar.
-sidebar-about-description: "热爱创作与思考的博主"
+sidebar-about-description: ""
 sidebar-avatar: "/img/fujimoto-tree-makoto-headshot.jpg" # 使用绝对路径确保所有页面都能正确加载图片
 
 # Featured Tags
