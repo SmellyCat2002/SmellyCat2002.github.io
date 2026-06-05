@@ -48,8 +48,33 @@ layout: default
       {% include ads.html %}
     </div>
     {% endif %}
-  </div>
 </div>
+
+<!-- Mermaid.js Support -->
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'default',
+    securityLevel: 'loose',
+    flowchart: {
+      useMaxWidth: true,
+      htmlLabels: true
+    }
+  });
+
+  // Convert markdown mermaid code blocks to mermaid-compatible format
+  document.addEventListener('DOMContentLoaded', function() {
+    var codeBlocks = document.querySelectorAll('pre code.language-mermaid, pre code[class*="language-mermaid"]');
+    codeBlocks.forEach(function(codeBlock) {
+      var pre = codeBlock.parentElement;
+      var mermaidDiv = document.createElement('div');
+      mermaidDiv.className = 'mermaid';
+      mermaidDiv.textContent = codeBlock.textContent;
+      pre.parentElement.replaceChild(mermaidDiv, pre);
+    });
+  });
+</script>
 
 {% if site.page-mathjax %}
 <!-- Add support for Mathjax by Voleking-->
