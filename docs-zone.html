@@ -1,0 +1,77 @@
+---
+layout: page
+title: "Docs Zone"
+description: "「文档专区」"
+header-mask: 0.3
+header-img: img/about-bg.svg
+hide-in-nav: true
+---
+
+<div class="post-container">
+    <h2>文档专区</h2>
+    <p>这里收录了各类技术文档和设计文档，点击即可查看。</p>
+    
+    <hr>
+    
+    <div class="pdf-list">
+        <div class="pdf-item">
+            <h3>
+                <i class="fa fa-file-text-o" style="color: #3498db;"></i>
+                <a href="{{ site.baseurl }}/副本boss测试" target="_blank">Boss 战技能设计文档</a>
+                <span class="badge-new">NEW</span>
+            </h3>
+            <p class="pdf-description">武侠风格10人副本Boss战技能设计文档（含Mermaid流程图）</p>
+        </div>
+    </div>
+</div>
+
+<style>
+.pdf-list {
+    margin-top: 30px;
+}
+
+.pdf-item {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border-left: 4px solid #3498db;
+    transition: all 0.3s ease;
+}
+
+.pdf-item:hover {
+    background: #e9ecef;
+    transform: translateX(5px);
+}
+
+.pdf-item h3 {
+    margin: 0 0 10px 0;
+    font-size: 1.3em;
+}
+
+.pdf-item h3 a {
+    color: #333;
+    text-decoration: none;
+    margin-left: 10px;
+}
+
+.pdf-item h3 a:hover {
+    color: #3498db;
+}
+
+.pdf-description {
+    color: #666;
+    margin: 0;
+    font-size: 0.95em;
+}
+
+.badge-new {
+    background: #e74c3c;
+    color: white;
+    font-size: 0.7em;
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-left: 10px;
+    font-weight: bold;
+}
+</style>
